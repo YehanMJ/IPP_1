@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const mysql = require('mysql2')
-
+const jwt = require('jsonwebtoken')
+require('dotenv').config()
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -28,7 +29,8 @@ const login = (req, res) => {
                     return res.status(500).send('Error comparing passwords');
                 }
                 if (result) {
-                    res.send('Login successful');
+                    const accessToken = jwt.sign({ "email": req.body.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' });
+                    res.send({ accessToken: accessToken });
                 } else {
                     return res.status(401).send('Invalid email or password');
                 }
