@@ -6,7 +6,7 @@ const verifyJWT = (req, res, next) => {
     if (!authHeader) {
         return res.sendStatus(401); // Unauthorized
     }
-    consolest.log(authHeader);
+    console.log(authHeader);
     const token = authHeader.split(' ')[1];
     if (!token) {
         return res.sendStatus(401); // Unauthorized

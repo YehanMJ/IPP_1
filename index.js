@@ -1,5 +1,6 @@
 const express = require('express')
 const userRoute = require('./routes/user-route')
+const ordersRoute = require('./routes/orders-routes')
 
 
 
@@ -12,6 +13,8 @@ app.use(express.urlencoded())
 app.use(express.json())
 
 app.use("/api/ECS/user", userRoute);
+app.use("/api/ECS/orders", ordersRoute);
+
 
 
 app.listen(port, () => {
