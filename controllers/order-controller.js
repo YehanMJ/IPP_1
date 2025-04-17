@@ -15,8 +15,17 @@ const createOrder = (req, res) => {
     });
 }
 
+const getAllOrders = (req, res) => {
+    Order.getAllOrders((err, orders) => {
+        if (err) {
+            return res.status(500).send('Error fetching orders');
+        }
+        res.status(200).send(orders);
+    });
+}
+
 const getOrders = (req, res) => {
-    const userId = req.params.id;
+    const userId = req.params.userId;
     Order.getOrders(userId, (err, order) => {
         if (err) {
             return res.status(500).send('Error fetching orders');
@@ -25,23 +34,22 @@ const getOrders = (req, res) => {
     });
 }
 
-const getOrderById = (req, res) => {
-    const orderId = req.params.id;
-    Order.getOrderById(orderId, (err, order) => {
-        if (err) {
-            return res.status(500).send('Error fetching order');
-        }
-        if (!order) {
-            return res.status(404).send('Order not found');
-        }
-        res.status(200).send(order);
-    });
-}
+// const getOrderById = (req, res) => {
+//     const orderId = req.params.orderId;
+//     Order.getOrderById(orderId, (err, order) => {
+//         if (err) {
+//             return res.status(500).send('Error fetching order');
+//         }
+//         if (!order) {
+//             return res.status(404).send('Order not found');
+//         }
+//         res.status(200).send(order);
+//     });
+// }
 
 const updateOrder = (req, res) => {
-    const orderId = req.params.id;
+    const orderId = req.params.orderId;
     const updatedOrder = {
-        userID: req.body.userID,
         totalAmount: req.body.totalAmount,
         status: req.body.status
     };
@@ -57,7 +65,7 @@ const updateOrder = (req, res) => {
 }
 
 const deleteOrder = (req, res) => {
-    const orderId = req.params.id;
+    const orderId = req.params.orderId;
     Order.deleteOrder(orderId, (err, result) => {
         if (err) {
             return res.status(500).send('Error deleting order');
@@ -71,8 +79,8 @@ const deleteOrder = (req, res) => {
 
 module.exports = {
     createOrder,
+    getAllOrders,
     getOrders,
-    getOrderById,
     updateOrder,
     deleteOrder
 }

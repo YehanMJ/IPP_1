@@ -1,6 +1,7 @@
 const express = require('express')
 const userRoute = require('./routes/user-route')
 const ordersRoute = require('./routes/orders-routes')
+const productRoute = require('./routes/product-routes')
 
 
 
@@ -14,6 +15,7 @@ app.use(express.json())
 
 app.use("/api/ECS/user", userRoute);
 app.use("/api/ECS/orders", ordersRoute);
+app.use("/api/ECS/products", productRoute);
 
 
 
