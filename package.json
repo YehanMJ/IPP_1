@@ -1,0 +1,28 @@
+{
+  "name": "ipp1",
+  "version": "1.0.0",
+  "description": "Industry Placement Project - 1 It simulates an online shopping experience",
+  "license": "ISC",
+  "author": "Yehan",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.7.0",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.2",
+    "mysql2": "^3.14.0",
+    "react": "^19.1.0",
+    "react-router-dom": "^7.5.0",
+    "redux": "^5.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
