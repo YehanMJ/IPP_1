@@ -15,7 +15,7 @@ const verifyJWT = (req, res, next) => {
         if (err) {
             return res.sendStatus(403); // Forbidden
         }
-        req.user = user.email; // Store the user email in the request object
+        req.user = user; // Store the user email in the request object
         next();
     });
 }

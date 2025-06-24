@@ -7,13 +7,22 @@ const createOrder = (req, res) => {
         totalAmount: req.body.totalAmount,
         status: req.body.status
     };
-    Order.createOrder(newOrder, (err, orderId) => {
+
+    const orderItems = req.body.orderItems; // Array of order items
+
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
+        return res.status(400).send('Order items are required');
+    }
+
+    Order.createOrder(newOrder, orderItems, (err, orderId) => {
         if (err) {
+            console.error('Error creating order:', err);
             return res.status(500).send('Error creating order');
         }
-        res.status(201).send({ orderId });
+        res.status(201).send({ message: 'Order created successfully', orderId });
     });
-}
+};
+
 
 const getAllOrders = (req, res) => {
     Order.getAllOrders((err, orders) => {

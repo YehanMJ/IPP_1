@@ -8,58 +8,97 @@ const connection = mysql.createConnection({
     database: 'IPP_1'
 });
 
-const createOrder = (orderData, callback) => {
+const createOrder = (orderData, orderItems, callback) => {
     // Validate the input data
-    if (!orderData.userID || !orderData.totalAmount || !orderData.status) {
-        return callback(new Error('Invalid order data'));
+    if (!orderData.userID || !orderData.totalAmount || !orderData.status || !Array.isArray(orderItems) || orderItems.length === 0) {
+        return callback(new Error('Invalid order data or order items'));
     }
 
-    // Check if the user exists (example validation)
-    const userQuery = 'SELECT * FROM Users WHERE ID = ?';
-    connection.query(userQuery, [orderData.userID], (err, rows) => {
+    connection.beginTransaction((err) => {
         if (err) {
             console.error(err);
             return callback(err);
         }
-        if (rows.length === 0) {
-            return callback(new Error('User does not exist'));
-        }
 
-        // Proceed with order creation
-        connection.beginTransaction((err) => {
+        // Step 1: Insert the order into the Orders table
+        const orderQuery = 'INSERT INTO orders (userID, totalAmount, status) VALUES (?, ?, ?)';
+        connection.query(orderQuery, [orderData.userID, orderData.totalAmount, orderData.status], (err, result) => {
             if (err) {
                 console.error(err);
-                return callback(err);
+                return connection.rollback(() => callback(err)); // Rollback on error
             }
 
-            const query = 'INSERT INTO orders (userID, totalAmount, status) VALUES (?, ?, ?)';
-            connection.query(query, [orderData.userID, orderData.totalAmount, orderData.status], (err, result) => {
-                if (err) {
-                    console.error(err);
-                    return connection.rollback(() => callback(err)); // Rollback on error
+            const orderId = result.insertId; // Get the inserted order ID
+
+            // Step 2: Insert each item into the OrderItems table
+            const orderItemsQuery = 'INSERT INTO OrderItems (orderID, productID, quantity, price) VALUES (?, ?, ?, ?)';
+            const updateStockQuery = 'UPDATE Products SET stock = stock - ? WHERE ID = ?';
+
+            const processOrderItems = (index) => {
+                if (index >= orderItems.length) {
+                    // All items processed, commit the transaction
+                    return connection.commit((err) => {
+                        if (err) {
+                            console.error(err);
+                            return connection.rollback(() => callback(err)); // Rollback on commit error
+                        }
+                        callback(null, orderId); // Return the order ID
+                    });
                 }
 
-                connection.commit((err) => {
+                const item = orderItems[index];
+                if (!item.productID || !item.quantity || !item.price) {
+                    return connection.rollback(() => callback(new Error('Invalid order item data')));
+                }
+
+                // Insert the item into OrderItems
+                connection.query(orderItemsQuery, [orderId, item.productID, item.quantity, item.price], (err) => {
                     if (err) {
                         console.error(err);
-                        return connection.rollback(() => callback(err)); // Rollback on commit error
+                        return connection.rollback(() => callback(err)); // Rollback on error
                     }
-                    callback(null, result.insertId); // Return the inserted ID
+
+                    // Update the stock in the Products table
+                    connection.query(updateStockQuery, [item.quantity, item.productID], (err, result) => {
+                        if (err) {
+                            console.error(err);
+                            return connection.rollback(() => callback(err)); // Rollback on error
+                        }
+
+                        if (result.affectedRows === 0) {
+                            return connection.rollback(() => callback(new Error('Product not found or insufficient stock')));
+                        }
+
+                        // Process the next item
+                        processOrderItems(index + 1);
+                    });
                 });
-            });
+            };
+
+            processOrderItems(0); // Start processing items
         });
     });
 };
 
 const getAllOrders = (callback) => {
-    connection.query('SELECT * FROM orders', (err, rows) => {
+    const query = `
+        SELECT 
+            Orders.ID, 
+            Orders.totalAmount, 
+            Orders.status, 
+            Orders.created_at, 
+            Users.name AS userName 
+        FROM Orders 
+        INNER JOIN Users ON Orders.userID = Users.ID`;
+
+    connection.query(query, (err, rows) => {
         if (err) {
             console.error(err);
             return callback(err);
         }
         callback(null, rows);
     });
-}
+};
 
 const getOrders = (id, callback) => {
     const query = 'SELECT * FROM orders WHERE userID = ?';
